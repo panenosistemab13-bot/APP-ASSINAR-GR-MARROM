@@ -23,6 +23,7 @@ import {
 import { SignaturePad } from './SignaturePad';
 import { Contract } from '../types';
 import { CHECKLIST_ITEMS } from '../constants';
+import { supabase } from '../lib/supabase';
 
 const SECURITY_TIPS = [
   "Sua segurança é nossa prioridade. Respeite os limites de velocidade.",
@@ -44,9 +45,13 @@ export const DriverSignature: React.FC = () => {
   useEffect(() => {
     const fetchContract = async () => {
       try {
-        const response = await fetch(`/api/contracts/${id}`);
-        if (!response.ok) throw new Error('Contrato não encontrado');
-        const data = await response.json();
+        const { data, error } = await supabase
+          .from('contracts')
+          .select('*')
+          .eq('id', id)
+          .single();
+          
+        if (error || !data) throw new Error('Contrato não encontrado');
         setContract(data);
         if (data.signature) setSigned(true);
       } catch (err) {
@@ -67,13 +72,18 @@ export const DriverSignature: React.FC = () => {
 
   const handleSign = async (signature: string) => {
     try {
-      const response = await fetch(`/api/contracts/${id}/sign`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ signature })
-      });
-      if (response.ok) {
+      const { error } = await supabase
+        .from('contracts')
+        .update({ 
+          signature, 
+          signed_at: new Date().toISOString() 
+        })
+        .eq('id', id);
+
+      if (!error) {
         setSigned(true);
+      } else {
+        throw error;
       }
     } catch (err) {
       alert('Erro ao salvar assinatura.');

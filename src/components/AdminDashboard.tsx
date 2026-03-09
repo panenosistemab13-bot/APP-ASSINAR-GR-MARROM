@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { parseDriverLine } from '../services/geminiService';
 import { DriverData, Contract } from '../types';
+import { supabase } from '../lib/supabase';
 import { 
   PieChart, 
   Pie, 
@@ -67,11 +68,13 @@ export const AdminDashboard: React.FC = () => {
   const fetchHistory = async () => {
     setHistoryLoading(true);
     try {
-      const response = await fetch('/api/contracts');
-      if (response.ok) {
-        const data = await response.json();
-        setContracts(data);
-      }
+      const { data, error } = await supabase
+        .from('contracts')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setContracts(data || []);
     } catch (error) {
       console.error("Failed to fetch history", error);
     } finally {
@@ -100,19 +103,19 @@ export const AdminDashboard: React.FC = () => {
       setParsedData(data);
       
       const id = Math.random().toString(36).substring(2, 15);
-      const response = await fetch('/api/contracts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, data })
-      });
+      const { error: supabaseError } = await supabase
+        .from('contracts')
+        .insert([{ id, data }]);
 
-      if (response.ok) {
+      if (!supabaseError) {
         const url = `${window.location.origin}/sign/${id}`;
         setGeneratedLink(url);
+      } else {
+        throw supabaseError;
       }
     } catch (error) {
       console.error(error);
-      alert('Erro ao processar dados. Verifique sua chave de API.');
+      alert('Erro ao processar dados ou salvar no Supabase.');
     } finally {
       setLoading(false);
     }
@@ -122,9 +125,15 @@ export const AdminDashboard: React.FC = () => {
     if (!confirm('Tem certeza que deseja excluir este registro?')) return;
     
     try {
-      const response = await fetch(`/api/contracts/${id}`, { method: 'DELETE' });
-      if (response.ok) {
+      const { error } = await supabase
+        .from('contracts')
+        .delete()
+        .eq('id', id);
+        
+      if (!error) {
         setContracts(contracts.filter(c => c.id !== id));
+      } else {
+        throw error;
       }
     } catch (error) {
       console.error("Failed to delete", error);
