@@ -346,31 +346,38 @@ export const DriverSignature: React.FC = () => {
 
                     <div className="glass-dark p-8 rounded-[2.5rem] space-y-6 text-sm leading-relaxed text-zinc-300">
                       <div className="space-y-4">
-                        <div className="flex gap-4">
-                          <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center shrink-0">
-                            <Lock className="w-5 h-5 text-accent-orange" />
-                          </div>
-                          <p>Estou ciente que o descumprimento das normas pode resultar em bloqueio para novos carregamentos.</p>
-                        </div>
-                        <div className="flex gap-4">
-                          <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center shrink-0">
-                            <Calendar className="w-5 h-5 text-accent-orange" />
-                          </div>
-                          <p>Respeitarei o horário de rodagem das <span className="text-white font-bold">05:00 às 22:00</span>.</p>
-                        </div>
-                        <div className="flex gap-4">
-                          <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center shrink-0">
-                            <Truck className="w-5 h-5 text-accent-orange" />
-                          </div>
-                          <p>Não concederei carona e seguirei estritamente a rota predeterminada.</p>
-                        </div>
-                      </div>
+                        <p className="font-bold text-white text-center border-b border-white/10 pb-4 mb-4">TERMO DE RESPONSABILIDADE GR</p>
+                        
+                        <p>Declaro para os devidos fins, que fui contratado(a) pela transportadora, cujos dados seguem abaixo, para efetuar o transporte de carga do embarcador <span className="text-accent-orange font-bold">TRÊS CORAÇÕES ALIMENTOS S.A., CAFÉ TRÊS CORAÇÕES S.A.</span></p>
+                        
+                        <p>Estou ciente quanto às normas e procedimentos descritos nos itens a seguir. Confirmo que li e compreendi todas as regras repassadas quanto ao Gerenciamento de Riscos e me comprometo a cumpri-las em sua totalidade.</p>
+                        
+                        <p>Comprometo-me a entregar a carga ao destinatário, em iguais condições em que recebi. Além de, no decorrer do percurso, colher carimbo e assinatura em todos os Postos Fiscais.</p>
+                        
+                        <p>Estou ciente que, em caso de descumprimento das normas indicadas neste documento, poderei ser responsabilizado civil e criminalmente pelos danos causados à carga em caso de sinistro, estando eu em desacordo com as regras impostas a mim. Dessa forma, fica a critério do embarcador me bloquear ou não para carregamento através da Central de Gerenciamento de Riscos.</p>
+                        
+                        <p>Também estou ciente de que o veículo não pode ser retirado do local de descarga e/ou estacionamento sem autorização da Logística da Filial.</p>
 
-                      <div className="h-px bg-white/10 w-full"></div>
-
-                      <div className="space-y-4">
-                        <p>Declaro que fui contratado pela transportadora <span className="text-white font-bold">{contract.data.transportador}</span> para o transporte de carga do embarcador <span className="text-accent-orange font-bold">3 CORAÇÕES</span>.</p>
-                        <p>Comprometo-me a entregar a carga ao destinatário em perfeitas condições e manter a central informada de todas as paradas.</p>
+                        <div className="h-px bg-white/10 w-full my-4"></div>
+                        
+                        <p className="font-bold text-white uppercase text-xs tracking-widest">Regras de Monitoramento:</p>
+                        
+                        <ul className="space-y-3 list-disc pl-4 text-[13px]">
+                          <li>Ao informar início de viagem, deverá aguardar a mensagem "Ok, Liberado" que será enviada pela Central de Monitoramento 3corações;</li>
+                          <li>Informar todas as paradas e reinícios durante a viagem;</li>
+                          <li>Ao chegar no local de descarga, enviar macro "CHEGADA NO CLIENTE", e enviando a macro de "FIM DE VIAGEM";</li>
+                          <li>É proibido parar antes dos 150 km iniciais, exceto paradas obrigatórias ou problema mecânico/elétrico;</li>
+                          <li>É proibido pernoite em residência; Respeitar o horário de rodagem das 05h00min às 22h00min;</li>
+                          <li>O veículo será desbloqueado após o pernoite, somente mediante confirmação de senha de segurança;</li>
+                          <li>Evitar pernoite sob cobertura; Não conceder carona; Seguir a rota predeterminada;</li>
+                          <li>Respeitar o limite de velocidade da via, não excedendo o limite de 80km/h;</li>
+                          <li>Central: Fixo (85) 4006.5522 / WhatsApp (85) 99198.2886;</li>
+                          <li>Dirigir preventivamente, preservando sua própria vida e carga do embarcador;</li>
+                          <li>Não oferecer ou aceitar pagamentos ilegais ou vantagens de qualquer natureza;</li>
+                          <li>(Proibido passagem por Sergipe);</li>
+                          <li>RJ: Agendar escolta com 2 horas de antecedência do ponto de encontro em Duque de Caxias/RJ;</li>
+                          <li>Pernoite na BR-381 Rod. Fernão Dias, somente autorizado nos postos Rede Graal e Frango Assado;</li>
+                        </ul>
                       </div>
                     </div>
 

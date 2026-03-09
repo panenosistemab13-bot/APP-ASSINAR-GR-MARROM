@@ -28,6 +28,7 @@ import {
 import { parseDriverLine } from '../services/geminiService';
 import { DriverData, Contract } from '../types';
 import { supabase } from '../lib/supabase';
+import { CHECKLIST_ITEMS } from '../constants';
 import { 
   PieChart, 
   Pie, 
@@ -205,28 +206,7 @@ export const AdminDashboard: React.FC = () => {
     doc.line(20, y, 190, y);
     y += 4;
 
-    const checklistItems = [
-      "O VEÍCULO APRESENTA-SE LIMPO E EM BOAS CONDIÇÕES DE ACESSO AO DEPÓSITO.",
-      "AUSÊNCIA DE VESTÍGIOS DE QUE TRANSPORTOU PRODUTOS QUÍMICOS OU QUALQUER OUTRO ITEM?",
-      "AUSÊNCIA DE VESTÍGIOS DE OUTROS ALIMENTOS NO COMPARTIMENTO ARMAZENADOR.",
-      "AUSÊNCIA DE ANIMAIS DOMÉSTICOS NO VEÍCULO.",
-      "AUSÊNCIA DE PRAGAS E INSETOS MORTOS E/OU VIVOS.",
-      "CARROCERIA SEM PRESENÇA DE IMPERFEIÇÕES QUE POSSAM CAUSAR AVARIAS.",
-      "ESTADO GERAL DE CONSERVAÇÃO DO VEÍCULO (CABINE, CARROCERIA, ASSOALHO, ETC.)",
-      "FARÓIS, LANTERNAS, PISCAS, BUZINA E LIMPADOR DE PARA-BRISA",
-      "PNEUS (INCLUSIVE ESTEPE)",
-      "PARA-CHOQUE (CONSERVAÇÃO E FIXAÇÃO)",
-      "PARA-BRISA, ESPELHOS RETROVISORES, VIDROS LATERAIS",
-      "TANQUE DE COMBUSTÍVEL",
-      "EQUIPAMENTOS OBRIGATÓRIOS (CINTO, EXTINTOR, MACACO, ETC.)",
-      "FAIXAS REFLETIVAS",
-      "VAZAMENTOS (COMBUSTÍVEL / FREIO / AR / ETC.)",
-      "TACÓGRAFO (EQUIPAMENTO E DISCO)",
-      "TRAVESSA SIDER (obs: não se aplica a baú ou câmara fria)",
-      "MADEIRITE (obs: não se aplica a baú ou câmara fria)",
-      "VESTIMENTAS DO MOTORISTA QUANTO Á: UNIFORME, CRACHÁ, CALÇADO, ETC.",
-      "VEÍCULO ABASTECIDO"
-    ];
+    const checklistItems = CHECKLIST_ITEMS;
 
     doc.setFontSize(6);
     doc.setFont("helvetica", "normal");
@@ -338,18 +318,25 @@ export const AdminDashboard: React.FC = () => {
     doc.setFontSize(6);
     doc.setFont("helvetica", "normal");
     const rules = [
-      "Ao informar início de viagem, deverá aguardar a mensagem \"Ok, Liberado\" que será enviada pela Central de Monitoramento 3corações;",
+      "Ao informar início de viagem, deverá aguardar a mensagem \"Ok, Liberado\" que será enviada pela Central de Monitoramento 3corações, autorizando o prosseguimento da viagem;",
       "Informar todas as paradas e reinícios durante a viagem;",
-      "Ao chegar no local de descarga, enviar macro \"CHEGADA NO CLIENTE\", e enviando a macro de \"FIM DE VIAGEM\";",
+      "Ao chegar no local de descarga, enviar macro \"CHEGADA NO CLIENTE\", e enviando a macro de \"FIM DE VIAGEM\", somente quando a descarga for finalizada;",
       "É proibido parar antes dos 150 km iniciais, exceto paradas obrigatórias ou problema mecânico/elétrico;",
-      "É proibido pernoite em residência; Respeitar o horário de rodagem, no período de 05h00min às 22h00min;",
-      "O veículo será desbloqueado após o pernoite, somente mediante confirmação de senha de segurança do motorista;",
-      "Evitar pernoite sob cobertura, evitando perda de sinal da antena; Não conceder carona; Seguir a rota predeterminada;",
+      "É proibido pernoite em residência;",
+      "Respeitar o horário de rodagem, no período de 05h00min às 22h00min;",
+      "O veículo será desbloqueado após o pernoite, somente mediante confirmação de senha de segurança do motorista, via teclado;",
+      "Evitar pernoite sob cobertura, evitando perda de sinal da antena;",
+      "Não conceder carona;",
+      "Seguir a rota predeterminada;",
       "Respeitar o limite de velocidade da via, não excedendo o limite de 80km/h;",
-      "Central: Fixo (85) 4006.5522 / WhatsApp (85) 99198.2886 (apenas mensagem e áudio);",
-      "Dirigir preventivamente, evitando acidentes, preservando sua própria vida e carga do embarcador;",
-      "Não oferecer ou aceitar pagamentos ilegais ou vantagens de qualquer natureza; (Proibido passagem por Sergipe);",
-      "RJ: Agendar escolta com 2 horas de antecedência do ponto de encontro no pedágio desativado em Duque de Caxias/RJ;",
+      "Manter a central informada de todas as anormalidades durante o percurso, mantendo a comunicação, via macro, como também pelos telefones:",
+      "Fixo (85) 4006.5522 (escolher a opção desejada); WhatsApp (85) 99198.2886 (apenas mensagem e áudio);",
+      "Dirigir preventivamente, evitando acidentes, preservando sua própria vida, a vida de terceiros e também carga do embarcador;",
+      "Não oferecer, dar ou aceitar de quem quer que seja, tanto por conta própria ou através de terceiro, qualquer pagamento, doação, compensação,",
+      "vantagens ou benefícios de qualquer natureza que constituam prática ilegal ou prática de corrupção sob as leis de qualquer país;",
+      "(Proibido passagem por Sergipe);",
+      "RJ: Agendar escolta com 2 horas de antecedência do ponto de encontro, no pedágio desativado em Duque de Caxias/RJ, evitar rodar depois das 17 horas",
+      "dentro da área urbana da cidade. Caso necessário, o pernoite acontecerá mais cedo na cidade de Três Rios/RJ (Posto Ipirangão);",
       "Pernoite na BR-381 Rod. Fernão Dias, somente autorizado nos postos Rede Graal e Frango Assado;"
     ];
 
