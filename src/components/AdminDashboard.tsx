@@ -9,36 +9,25 @@ import { parseDriverLine } from '../services/geminiService';
 import { DriverData, Contract } from '../types';
 import { supabase } from '../lib/supabase';
 import { CHECKLIST_ITEMS } from '../constants';
-import jsPDF from 'jspdf';
-
-const SECURITY_PHRASES = [
-  "Segurança é a nossa prioridade número um.",
-  "Dirija com cuidado, sua família te espera.",
-  "A carga é importante, mas sua vida é essencial.",
-  "Cumprir as normas de GR salva vidas."
-];
 
 export const AdminDashboard: React.FC = () => {
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);
-  const [parsedData, setParsedData] = useState<DriverData | null>(null);
   const [generatedLink, setGeneratedLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<'generate' | 'history'>('generate');
   const [contracts, setContracts] = useState<Contract[]>([]);
-  const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
 
-  // Busca histórico do Supabase
+  // Carrega o histórico de motoristas
   const fetchHistory = async () => {
     try {
       const { data, error } = await supabase
         .from('contracts')
         .select('*')
         .order('created_at', { ascending: false });
-      if (error) throw error;
-      setContracts(data || []);
-    } catch (error) {
-      console.error("Erro ao buscar histórico:", error);
+      if (!error) setContracts(data || []);
+    } catch (err) {
+      console.error("Erro ao carregar histórico", err);
     }
   };
 
@@ -46,36 +35,38 @@ export const AdminDashboard: React.FC = () => {
     if (activeTab === 'history') fetchHistory();
   }, [activeTab]);
 
-  // Lógica principal de processamento
   const handleProcess = async () => {
     if (!inputText.trim()) return;
     setLoading(true);
-    try {
-      // Extrai os dados do texto usando o serviço Gemini
-      const extractedData = await parseDriverLine(inputText);
-      setParsedData(extractedData);
-      
-      // Gera um ID único para a URL
-      const uniqueId = Math.random().toString(36).substring(2, 11).toUpperCase();
+    setGeneratedLink(null);
 
-      // Salva no banco de dados Supabase
-      const { error } = await supabase
+    try {
+      // 1. Extração de dados via Gemini Service
+      const extracted = await parseDriverLine(inputText);
+      
+      // 2. Criação de ID único para o link
+      const contractId = Math.random().toString(36).substring(2, 10).toUpperCase();
+
+      // 3. Salvamento no Supabase
+      // Importante: O campo 'data' deve ser tipo JSONB no banco
+      const { error: dbError } = await supabase
         .from('contracts')
         .insert([{ 
-          id: uniqueId, 
-          data: extractedData, 
-          status: 'pendente' 
+          id: contractId, 
+          data: extracted, 
+          created_at: new Date().toISOString()
         }]);
 
-      if (error) throw error;
+      if (dbError) throw dbError;
 
-      // Gera o link final (Baseado na rota /sign/:id do seu App.tsx)
-      const url = `${window.location.origin}/sign/${uniqueId}`;
+      // 4. Sucesso: Gera o link de assinatura
+      const url = `${window.location.origin}/sign/${contractId}`;
       setGeneratedLink(url);
-      
+      setInputText('');
+
     } catch (error: any) {
-      console.error(error);
-      alert('Erro ao salvar no banco. Verifique se a tabela "contracts" tem a coluna "data" tipo JSONB.');
+      console.error("Erro detalhado:", error);
+      alert(`Erro: ${error.message || 'Falha ao salvar. Verifique se a coluna "data" existe na tabela contracts.'}`);
     } finally {
       setLoading(false);
     }
@@ -90,79 +81,113 @@ export const AdminDashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 flex flex-col lg:flex-row">
-      {/* Sidebar - Identidade Visual AssinaGR */}
-      <aside className="w-full lg:w-72 bg-[#1a1412] text-white p-8 flex flex-col">
+    <div className="min-h-screen bg-[#0c0a09] text-zinc-100 flex flex-col lg:flex-row font-sans">
+      {/* Sidebar */}
+      <aside className="w-full lg:w-72 bg-[#1c1917] p-8 flex flex-col border-r border-white/5">
         <div className="flex items-center gap-4 mb-12">
-          <div className="w-12 h-12 bg-[#f27d26] rounded-2xl flex items-center justify-center">
+          <div className="w-12 h-12 bg-[#f27d26] rounded-2xl flex items-center justify-center shadow-lg shadow-[#f27d26]/20">
             <ShieldCheck className="text-white w-7 h-7" />
           </div>
           <div>
-            <h1 className="text-2xl font-black">AssinaGR</h1>
-            <p className="text-[10px] text-[#f27d26] font-bold uppercase">Risk Management</p>
+            <h1 className="text-2xl font-black tracking-tighter">AssinaGR</h1>
+            <p className="text-[10px] text-[#f27d26] font-bold uppercase tracking-widest">Logistics Control</p>
           </div>
         </div>
 
-        <nav className="space-y-3">
-          <button onClick={() => setActiveTab('generate')} className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-sm font-bold ${activeTab === 'generate' ? 'bg-white text-black' : 'text-zinc-500'}`}>
-            <LayoutDashboard className="w-5 h-5" /> Painel
+        <nav className="space-y-2">
+          <button 
+            onClick={() => setActiveTab('generate')}
+            className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-sm font-bold transition-all ${activeTab === 'generate' ? 'bg-[#f27d26] text-white' : 'text-zinc-500 hover:bg-white/5'}`}
+          >
+            <LayoutDashboard size={20} /> Painel de Controle
           </button>
-          <button onClick={() => setActiveTab('history')} className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-sm font-bold ${activeTab === 'history' ? 'bg-white text-black' : 'text-zinc-500'}`}>
-            <History className="w-5 h-5" /> Histórico
+          <button 
+            onClick={() => setActiveTab('history')}
+            className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-sm font-bold transition-all ${activeTab === 'history' ? 'bg-[#f27d26] text-white' : 'text-zinc-500 hover:bg-white/5'}`}
+          >
+            <History size={20} /> Histórico de Termos
           </button>
         </nav>
       </aside>
 
-      {/* Conteúdo Principal */}
-      <main className="flex-1 p-8 lg:p-12">
+      {/* Main */}
+      <main className="flex-1 p-8 lg:p-12 overflow-y-auto">
         <header className="mb-12">
-          <h2 className="text-4xl font-black text-[#1a1412] uppercase">{activeTab === 'generate' ? 'Novo Registro' : 'Histórico'}</h2>
-          <p className="text-zinc-500">Importe dados para gerar links de assinatura digital.</p>
+          <h2 className="text-4xl font-black uppercase tracking-tight text-white">
+            {activeTab === 'generate' ? 'Novo Registro' : 'Histórico de Assinaturas'}
+          </h2>
+          <p className="text-zinc-500 mt-2 font-medium">Sistema de Gerenciamento de Riscos e Termos Digitais.</p>
         </header>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+          {/* Coluna de Input */}
           <div className="xl:col-span-2 space-y-6">
-            <div className="bg-white rounded-[2.5rem] p-8 shadow-xl border border-zinc-100">
-              <h3 className="text-xl font-black mb-6 flex items-center gap-2">
-                <Clipboard className="text-[#f27d26]" /> IMPORTAR DADOS
-              </h3>
+            <div className="bg-[#1c1917] rounded-[2.5rem] p-8 border border-white/5 shadow-2xl">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 bg-[#f27d26]/10 rounded-lg">
+                  <Clipboard className="text-[#f27d26]" size={20} />
+                </div>
+                <h3 className="text-lg font-bold uppercase tracking-wider">Importar Dados da Planilha</h3>
+              </div>
+              
               <textarea
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                placeholder="Cole aqui os dados da planilha..."
-                className="w-full h-48 p-6 rounded-3xl bg-zinc-50 border-2 border-zinc-100 focus:border-[#f27d26]/30 outline-none resize-none mb-6"
+                placeholder="Cole aqui a linha da sua planilha de transporte..."
+                className="w-full h-48 p-6 rounded-3xl bg-[#0c0a09] border border-white/5 text-zinc-300 focus:border-[#f27d26]/50 outline-none transition-all resize-none mb-6 font-mono text-sm"
               />
+
               <button
                 onClick={handleProcess}
                 disabled={loading || !inputText.trim()}
-                className="w-full py-5 bg-[#1a1412] text-white rounded-[2rem] font-black uppercase tracking-widest flex items-center justify-center gap-4 hover:bg-black transition-all disabled:opacity-50"
+                className="w-full py-5 bg-[#f27d26] hover:bg-[#d96a1f] disabled:opacity-50 text-white rounded-[2rem] font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all shadow-lg shadow-[#f27d26]/10"
               >
-                {loading ? <Loader2 className="animate-spin" /> : <><Truck /> PROCESSAR E GERAR LINK <ChevronRight /></>}
+                {loading ? <Loader2 className="animate-spin" /> : <><Truck size={22} /> Gerar Link de Assinatura <ChevronRight size={22} /></>}
               </button>
             </div>
           </div>
 
-          {/* Card do Link Gerado */}
-          <div className="bg-white rounded-[2.5rem] p-8 shadow-xl border border-zinc-100">
-            <h3 className="text-xl font-black mb-6 flex items-center gap-2">
-              <LinkIcon className="text-amber-600" /> LINK DE ACESSO
-            </h3>
+          {/* Coluna do Link */}
+          <div className="bg-[#1c1917] rounded-[2.5rem] p-8 border border-white/5 flex flex-col">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="p-2 bg-blue-500/10 rounded-lg">
+                <LinkIcon className="text-blue-500" size={20} />
+              </div>
+              <h3 className="text-lg font-bold uppercase tracking-wider">Link de Assinatura</h3>
+            </div>
+
             {generatedLink ? (
-              <div className="text-center space-y-6">
-                <div className="p-6 bg-zinc-50 rounded-3xl border-2 border-dashed border-[#f27d26]/20">
-                  <p className="text-xs font-mono text-zinc-500 break-all mb-4">{generatedLink}</p>
-                  <button onClick={copyToClipboard} className="flex items-center gap-2 mx-auto bg-[#f27d26] text-white px-6 py-2 rounded-full font-bold text-sm">
-                    {copied ? <CheckCircle size={16}/> : <Copy size={16}/>} {copied ? 'Copiado!' : 'Copiar Link'}
+              <div className="flex-1 flex flex-col justify-center gap-6">
+                <div className="p-8 bg-[#0c0a09] rounded-3xl border border-white/5 text-center">
+                  <div className="w-16 h-16 bg-[#f27d26]/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle className="text-[#f27d26]" size={32} />
+                  </div>
+                  <p className="text-sm font-bold text-zinc-400 mb-6 uppercase tracking-tighter">O link está pronto para envio!</p>
+                  
+                  <div className="p-4 bg-white/5 rounded-xl mb-4 overflow-hidden">
+                    <p className="text-[10px] font-mono text-zinc-500 truncate">{generatedLink}</p>
+                  </div>
+
+                  <button 
+                    onClick={copyToClipboard}
+                    className="w-full py-3 bg-white text-black rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-zinc-200 transition-all"
+                  >
+                    {copied ? <CheckCircle size={18}/> : <Copy size={18}/>}
+                    {copied ? 'Link Copiado!' : 'Copiar Link'}
                   </button>
                 </div>
-                <div className="bg-[#1a1412] p-4 rounded-2xl text-[10px] text-zinc-400">
-                  O motorista deve abrir este link no celular para assinar o termo.
+                
+                <div className="flex items-start gap-3 p-4 bg-white/5 rounded-2xl">
+                  <AlertCircle size={18} className="text-zinc-500 shrink-0 mt-0.5" />
+                  <p className="text-[10px] text-zinc-500 leading-relaxed font-medium">
+                    Envie este link para o WhatsApp do motorista. Ele poderá assinar diretamente pelo celular usando a tela touch.
+                  </p>
                 </div>
               </div>
             ) : (
-              <div className="h-48 flex flex-col items-center justify-center text-zinc-300">
-                <Clock size={48} className="mb-2 opacity-20" />
-                <p className="text-xs italic">Aguardando processamento...</p>
+              <div className="flex-1 flex flex-col items-center justify-center text-center opacity-30">
+                <Clock size={48} className="mb-4" />
+                <p className="text-sm font-bold italic">Aguardando processamento<br/>de novos dados...</p>
               </div>
             )}
           </div>
